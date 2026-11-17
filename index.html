@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ular Tangga</title>
+<style>
+body {
+  background: #172033;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+#board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  max-width: 500px;
+  margin: auto;
+  gap: 2px;
+}
+.cell {
+  aspect-ratio: 1;
+  background: #ffe08a;
+  color: #222;
+  border-radius: 5px;
+  font-size: clamp(9px, 2.5vw, 15px);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 3px;
+  box-sizing: border-box;
+}
+.ladder { background: #78e08f; }
+.snake { background: #ff7979; }
+.player {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  font-size: 20px;
+}
+button {
+  background: #00c896;
+  border: none;
+  padding: 13px 22px;
+  margin: 10px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+</style>
+</head>
+<body>
+
+<h1>🐍 ULAR TANGGA 🎲</h1>
+<h3 id="turn">Giliran Pemain 🔴</h3>
+<h2>Dadu: <span id="dice">-</span></h2>
+
+<div id="board"></div>
+
+<button onclick="roll()">🎲 LEMPAR DADU</button>
+<button onclick="reset()">🔄 ULANGI</button>
+
+<h3 id="info">Selamat bermain!</h3>
+
+<script>
+const board = document.getElementById("board");
+
+const ladders = {
+  3:22, 8:30, 20:41, 28:55,
+  36:57, 51:72, 71:92, 80:99
+};
+
+const snakes = {
+  17:7, 54:34, 62:19, 64:60,
+  87:24, 93:73, 95:75, 98:79
+};
+
+let positions = [0,0];
+let player = 0;
+let gameOver = false;
+
+function createBoard() {
+  board.innerHTML = "";
+
+  for(let row=9;row>=0;row--) {
+    let nums = [];
+
+    for(let col=0;col<10;col++) {
+      nums.push(row%2===0
+        ? row*10+col+1
+        : row*10+10-col);
+    }
+
+    nums.forEach(n => {
+      let cell = document.createElement("div");
+      cell.className = "cell";
+
+      if(ladders[n]) cell.classList.add("ladder");
+      if(snakes[n]) cell.classList.add("snake");
+
+      cell.innerHTML = n;
+
+      if(ladders[n]) cell.innerHTML += " 🪜";
+      if(snakes[n]) cell.innerHTML += " 🐍";
+
+      if(positions[0]===n)
+        cell.innerHTML += '<span class="player">🔴</span>';
+
+      if(positions[1]===n)
+        cell.innerHTML += '<span class="player">🔵</span>';
+
+      board.appendChild(cell);
+    });
+  }
+}
+
+function roll() {
+  if(gameOver) return;
+
+  let dice = Math.floor(Math.random()*6)+1;
+  document.getElementById("dice").innerText = dice;
+
+  let next = positions[player]+dice;
+
+  if(next<=100) {
+    positions[player]=next;
+
+    if(ladders[next]) {
+      positions[player]=ladders[next];
+      document.getElementById("info").innerText =
+        "🎉 Naik tangga!";
+    }
+    else if(snakes[next]) {
+      positions[player]=snakes[next];
+      document.getElementById("info").innerText =
+        "🐍 Digigit ular! Turun!";
+    }
+    else {
+      document.getElementById("info").innerText =
+        "Maju " + dice + " langkah!";
+    }
+  }
+
+  if(positions[player]===100) {
+    gameOver=true;
+    document.getElementById("turn").innerText =
+      "🏆 PEMAIN "+(player+1)+" MENANG!";
+    document.getElementById("info").innerText =
+      "Selamat! Kamu memenangkan permainan!";
+    createBoard();
+    return;
+  }
+
+  player=1-player;
+
+  document.getElementById("turn").innerText =
+    "Giliran Pemain "+(player+1)+
+    (player===0?" 🔴":" 🔵");
+
+  createBoard();
+}
+
+function reset() {
+  positions=[0,0];
+  player=0;
+  gameOver=false;
+
+  document.getElementById("dice").innerText="-";
+  document.getElementById("turn").innerText="Giliran Pemain 🔴";
+  document.getElementById("info").innerText="Selamat bermain!";
+
+  createBoard();
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
